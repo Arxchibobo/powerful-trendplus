@@ -82,7 +82,8 @@ export const TRANSLATIONS = {
     discussions: "Discussions",
     searchVol: "Search Vol",
     relatedPosts: "Related Posts",
-    type: "Type"
+    type: "Type",
+    trendTimeline: "Trend Timeline"
   },
   zh: {
     appTitle: "趋势脉搏 AI",
@@ -166,6 +167,7 @@ export const TRANSLATIONS = {
     discussions: "讨论数",
     searchVol: "搜索量",
     relatedPosts: "相关视频/帖子",
-    type: "类型"
+    type: "类型",
+    trendTimeline: "趋势走向图"
   }
 };
