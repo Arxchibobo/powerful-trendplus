@@ -69,7 +69,8 @@ const ensureString = (val: any): string => {
 };
 
 export const getSearchSuggestions = async (query: string): Promise<string[]> => {
-    if (!process.env.API_KEY || query.length < 2) return [];
+    const apiKey = getApiKey();
+    if (!apiKey || query.length < 2) return [];
     const model = "gemini-flash-lite-latest"; 
     const prompt = `Suggest 5 viral search queries for visual trends based on: "${query}". Return a raw JSON array of strings only.`;
     try {
@@ -140,14 +141,24 @@ export const searchGlobalTrends = async (
       config: { tools: [{ googleSearch: {} }] },
     });
     const data = cleanAndParseJSON(response.text || "[]", []);
+    if (data.length === 0) throw new Error("No data from search");
     return processData(data);
   } catch (error) {
-    const response = await ai.models.generateContent({
-        model,
-        contents: prompt + " (Internal knowledge only)",
-        config: { responseMimeType: "application/json" },
-    });
-    return processData(cleanAndParseJSON(response.text || "[]", []));
+    console.warn("Search tool failed, falling back to internal knowledge:", error);
+    try {
+        const response = await ai.models.generateContent({
+            model,
+            contents: prompt + " (Use your internal knowledge to generate realistic trending topics for the current date: 2026-02-26)",
+            config: { 
+                responseMimeType: "application/json",
+            },
+        });
+        const data = cleanAndParseJSON(response.text || "[]", []);
+        return processData(data);
+    } catch (fallbackError) {
+        console.error("Fallback failed:", fallbackError);
+        return [];
+    }
   }
 };
 
@@ -229,7 +240,8 @@ export const generateTrendImage = async (prompt: string, size: '1K' | '2K' | '4K
     }
     
     // Create fresh GoogleGenAI instance right before the call to ensure updated key usage
-    const imageAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = getApiKey();
+    const imageAi = new GoogleGenAI({ apiKey });
     try {
         const response = await imageAi.models.generateContent({
             model: "gemini-3-pro-image-preview",
