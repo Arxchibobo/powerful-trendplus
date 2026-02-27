@@ -3,15 +3,17 @@ import React from 'react';
 import { TrendItem } from '../types';
 import { motion } from 'framer-motion';
 import { Zap, ShieldAlert, TrendingUp, AlertTriangle } from 'lucide-react';
+import TrendLine from './TrendLine';
 
 interface Props {
   trend: TrendItem;
   variant: 'trending' | 'agent' | 'risk';
   onClick: (trend: TrendItem) => void;
   isSelected: boolean;
+  t: any;
 }
 
-const TrendGalleryCard: React.FC<Props> = ({ trend, variant, onClick, isSelected }) => {
+const TrendGalleryCard: React.FC<Props> = ({ trend, variant, onClick, isSelected, t }) => {
   const baseClasses = `
     relative p-3 rounded-lg border cursor-pointer transition-all duration-300 flex flex-col justify-between h-[120px]
     ${isSelected 
@@ -58,6 +60,17 @@ const TrendGalleryCard: React.FC<Props> = ({ trend, variant, onClick, isSelected
              <h4 className="text-xs font-bold text-slate-200 leading-tight line-clamp-2 group-hover:text-white transition-colors">
                  {trend.topic}
              </h4>
+             <div className="flex items-center gap-2 mt-2">
+                {trend.views && (
+                    <div className="flex items-center gap-1">
+                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">{t.views}</span>
+                        <span className="text-[8px] font-black text-white">{trend.views}</span>
+                    </div>
+                )}
+                <div className="flex-1 h-6 opacity-40">
+                    <TrendLine data={trend.history} color={trend.trendScore && trend.trendScore > 80 ? '#FF7E5F' : '#00F0FF'} />
+                </div>
+             </div>
         </div>
 
         {/* Footer info */}
@@ -65,12 +78,12 @@ const TrendGalleryCard: React.FC<Props> = ({ trend, variant, onClick, isSelected
             {variant === 'risk' ? (
                  <div className="flex items-center gap-1 text-[9px] text-red-400 font-mono bg-red-900/20 px-1.5 py-0.5 rounded">
                      <AlertTriangle size={8} />
-                     HIGH RISK
+                     {t.highRisk}
                  </div>
             ) : variant === 'agent' ? (
                  <div className="flex items-center gap-1 text-[9px] text-green-400 font-mono bg-green-900/20 px-1.5 py-0.5 rounded">
                      <Zap size={8} />
-                     READY
+                     {t.ready}
                  </div>
             ) : (
                  <div className="flex items-center gap-1 text-[9px] text-slate-500 font-mono">

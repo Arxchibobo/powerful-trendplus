@@ -8,8 +8,8 @@ interface Props {
 
 export function VKSChart({ data }: Props) {
   return (
-    <div className="w-full h-full min-h-[300px]" style={{ height: '100%' }}>
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+    <div className="w-full h-full">
+      <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
             {/* Heatmap Gradient: 

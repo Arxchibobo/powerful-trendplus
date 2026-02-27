@@ -25,6 +25,15 @@ export interface TrendItem {
       url?: string;
       publishedTime?: string;
   }[];
+
+  // Performance Metrics & Context
+  views?: string;
+  discussionCount?: string;
+  searchVolume?: string;
+  relatedPosts?: { title: string; url: string; thumbnail?: string }[];
+  region?: string;
+  type?: string;
+  timePeriod?: '1w' | '1m' | '3m';
 }
 
 export interface ContentStrategy {
@@ -39,6 +48,7 @@ export interface CreatorGuideline {
     coreKeyword: string; // e.g., "cyberpunk portrait"
     productionSteps: string[]; // Step by step how to make it
     recommendedTools: string[]; // e.g., "Midjourney v6", "Flux"
+    requiredAssets: string[]; // e.g., "High-contrast portraits", "Neon overlays"
     commercialPotential: 'Low' | 'Medium' | 'High';
 }
 
@@ -72,57 +82,30 @@ export enum DataStreamStatus {
   INGESTING = 'INGESTING'
 }
 
+// Added missing interface for TrendReportItem to fix module export errors
 export interface TrendReportItem {
-    date: string;
-    window_hours: number;
-    platform: string;
-    keyword: string;
-    category: string;
-    metrics: {
-        search_index: number;
-        views: number;
-        likes: number;
-        comments: number;
-        shares: number;
-        saves: number;
-        posts: number;
-        prev_views: number;
-        prev_likes: number;
-        prev_comments: number;
-        prev_shares: number;
-        prev_saves: number;
-        prev_posts: number;
-    };
-    scores: {
-        H: number;
-        V: number;
-        D: number;
-        F: number;
-        M: number;
-        R: number;
-        trend_score: number;
-    };
-    lifecycle: string;
-    agent_ready: boolean;
-    build_plan: {
-        recommended: boolean;
-        agent_type: string;
-        model_stack: string[];
-        interaction: string;
-        expected_time_to_ship_days: number;
-    };
-    go_to_market: {
-        primary_platform: string;
-        content_format: string;
-        hook_examples: string[];
-        creator_fit: string;
-    };
-    risks: {
-        ip_risk: string;
-        saturation_risk: string;
-        notes: string;
-    };
-    assumptions: string[];
-    author?: string;
-    sample_content?: string;
+  platform: string;
+  keyword: string;
+  date: string;
+  category: string;
+  author?: string;
+  sample_content: string;
+  metrics: {
+    search_index: number;
+    posts: number;
+  };
+  scores: {
+    trend_score: number;
+    V: number;
+    F: number;
+  };
+  lifecycle: 'flash' | 'rising' | 'sustained' | 'evergreen' | 'declining';
+  agent_ready: boolean;
+  build_plan: {
+    expected_time_to_ship_days: number;
+  };
+  risks: {
+    ip_risk: 'low' | 'medium' | 'high';
+    saturation_risk: 'low' | 'medium' | 'high';
+  };
 }

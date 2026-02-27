@@ -2,28 +2,26 @@
 import React, { useState } from 'react';
 import { useTrendData, ConnectionStatus } from '../../hooks/useTrendData';
 import { VKSChart } from './VKSChart';
+import { ActiveOps } from './ActiveOps'; // Replaced TaskTable
 import { TrendIgnitionWidget } from './TrendIgnitionWidget';
 import { VKSSpark } from '../../components/effects/VKSSpark';
-import { HistoryRankings } from './HistoryRankings';
-// PlatformNewsPanel disabled - LinkedIn/Facebook have no data
-// import { PlatformNewsPanel } from '../../components/PlatformNewsPanel';
-import { Activity, Radio, AlertTriangle, Power, Network, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Activity, Radio, AlertTriangle, Power, Zap, Network, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Connection status display config
+// 连接状态显示配置
 const CONNECTION_STATUS_CONFIG: Record<ConnectionStatus, { color: string; text: string; icon: typeof Wifi }> = {
-  disconnected: { color: 'text-slate-500', text: 'Disconnected', icon: WifiOff },
-  connecting: { color: 'text-yellow-500 animate-pulse', text: 'Connecting...', icon: Wifi },
-  connected: { color: 'text-green-500', text: 'Connected', icon: Wifi },
-  error: { color: 'text-red-500', text: 'Error', icon: WifiOff },
+  disconnected: { color: 'text-slate-500', text: '未连接', icon: WifiOff },
+  connecting: { color: 'text-yellow-500 animate-pulse', text: '连接中...', icon: Wifi },
+  connected: { color: 'text-green-500', text: '已连接', icon: Wifi },
+  error: { color: 'text-red-500', text: '连接错误', icon: WifiOff },
 };
 
 export function Dashboard() {
-  // Get full state data from hook
-  const { data, currentVKS, currentHashtag, currentPlatform, currentAuthor, connectionStatus, dataSource, reconnect } = useTrendData();
+  // 从 hook 获取完整的状态数据
+  const { data, currentVKS, currentHashtag, connectionStatus, dataSource, reconnect } = useTrendData();
   const [showKillModal, setShowKillModal] = useState(false);
 
-  // Get connection status config
+  // 获取连接状态配置
   const statusConfig = CONNECTION_STATUS_CONFIG[connectionStatus];
 
   // Metric Cards Data - Updated to be more Data-Centric
@@ -48,43 +46,33 @@ export function Dashboard() {
             COMMAND_CENTER <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded">V3.0 CONFLUENT + FLINK</span>
           </h1>
           <div className="flex items-center gap-4 mt-1">
-            {/* Connection status indicator */}
+            {/* 连接状态指示器 */}
             <div className="flex items-center gap-1.5">
               <statusConfig.icon size={12} className={statusConfig.color} />
               <span className={`text-[10px] font-mono ${statusConfig.color}`}>{statusConfig.text}</span>
             </div>
-            {/* Data source indicator */}
+            {/* 数据源指示器 */}
             <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
               dataSource === 'backend'
                 ? 'bg-green-900/30 text-green-400 border border-green-500/30'
-                : 'bg-blue-900/30 text-blue-400 border border-blue-500/30'
+                : 'bg-yellow-900/30 text-yellow-400 border border-yellow-500/30'
             }`}>
-              {dataSource === 'backend' ? '🔴 LIVE DATA' : '🔄 REPLAY'}
+              {dataSource === 'backend' ? '🔴 LIVE DATA' : '⚡ SIMULATION'}
             </span>
-            {/* Current tracking hashtag and platform */}
+            {/* 当前监控的 hashtag */}
             {currentHashtag && (
               <span className="text-[10px] font-mono text-pulse">
-                Tracking: {currentHashtag}
+                监控: {currentHashtag}
               </span>
             )}
-            {currentPlatform && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-900/30 text-blue-400 border border-blue-500/30">
-                📱 {currentPlatform.toUpperCase()}
-              </span>
-            )}
-            {currentAuthor && (
-              <span className="text-[10px] font-mono text-slate-400">
-                @{currentAuthor}
-              </span>
-            )}
-            {/* Reconnect button (only shown on error) */}
+            {/* 重连按钮（仅在错误状态显示） */}
             {connectionStatus === 'error' && (
               <button
                 onClick={reconnect}
                 className="flex items-center gap-1 text-[10px] font-mono text-yellow-400 hover:text-yellow-300 transition-colors"
               >
                 <RefreshCw size={10} />
-                Reconnect
+                重连
               </button>
             )}
           </div>
@@ -133,28 +121,27 @@ export function Dashboard() {
         })}
       </div>
 
-      {/* VKS Chart Section */}
-      <div className="h-[280px] bg-card/30 backdrop-blur border border-white/5 rounded p-1 relative flex flex-col z-10">
+      {/* Main Chart Section */}
+      <div className="flex-1 min-h-[300px] bg-card/30 backdrop-blur border border-white/5 rounded p-1 relative flex flex-col z-10">
         <div className="absolute top-4 left-4 z-10 flex flex-col">
             <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                 <Activity size={14} className="text-pulse" />
                 Real-time Kinetic Monitor
+                {currentHashtag && (
+                  <span className="text-spark font-mono">{currentHashtag}</span>
+                )}
             </h3>
             <span className="text-[10px] text-slate-500 font-mono">
-              Metric: VKS (Viral Kinetic Score)
+              Metric: VKS (Viral Kinetic Score) |
+              数据源: {dataSource === 'backend' ? 'Confluent Kafka + Flink SQL' : '本地模拟'}
             </span>
         </div>
         <VKSChart data={data} />
       </div>
 
-      {/* Platform News (LinkedIn/Facebook) - Disabled, these platforms have no data */}
-      {/* <div className="relative z-10">
-        <PlatformNewsPanel />
-      </div> */}
-
-      {/* History Rankings */}
-      <div className="relative z-10">
-        <HistoryRankings />
+      {/* New Active Ops Dashboard Table (Replacing old Task Table) */}
+      <div className="h-[500px] relative z-10">
+         <ActiveOps />
       </div>
 
       {/* Kill Switch Modal */}

@@ -4,45 +4,30 @@ import { TrendItem, AnalysisResult, TrendReportItem } from "../types";
 import { SocialSignal } from "./tikHubService";
 import { KEYWORD_DICTIONARY_PROMPT } from "../constants";
 
-const apiKey = (process.env.API_KEY || process.env.VITE_API_KEY || '');
-const ai = new GoogleGenAI({ apiKey });
+// Use GEMINI_API_KEY as the primary key for Gemini models
+const getApiKey = () => process.env.GEMINI_API_KEY || process.env.API_KEY || "";
 
-export const checkApiKey = () => !!apiKey;
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
-/**
- * ROBUST JSON PARSER
- * Uses bracket counting to handle cases where LLMs add trailing text 
- * (e.g. "Here is the JSON: ... Hope this helps!")
- */
+export const checkApiKey = () => !!getApiKey();
+
 const cleanAndParseJSON = (text: string, defaultValue: any) => {
     try {
-        // 1. Remove Markdown wrappers
         let clean = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-
-        // 2. Locate the start of the JSON structure
         const firstBrace = clean.indexOf('{');
         const firstBracket = clean.indexOf('[');
-        
         let startIdx = -1;
         let openChar = '';
         let closeChar = '';
 
-        // Determine if we are looking for an Object {} or Array []
         if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-            startIdx = firstBrace;
-            openChar = '{';
-            closeChar = '}';
+            startIdx = firstBrace; openChar = '{'; closeChar = '}';
         } else if (firstBracket !== -1) {
-            startIdx = firstBracket;
-            openChar = '[';
-            closeChar = ']';
+            startIdx = firstBracket; openChar = '['; closeChar = ']';
         } else {
-            // No JSON structure found
             return defaultValue;
         }
 
-        // 3. Robust Balance Counting to find the TRUE end
-        // This avoids issues where the model adds commentary after the JSON
         let balance = 0;
         let endIdx = -1;
         let insideString = false;
@@ -50,44 +35,21 @@ const cleanAndParseJSON = (text: string, defaultValue: any) => {
 
         for (let i = startIdx; i < clean.length; i++) {
             const char = clean[i];
-
-            if (escape) {
-                escape = false;
-                continue;
-            }
-            if (char === '\\') {
-                escape = true;
-                continue;
-            }
-            if (char === '"') {
-                insideString = !insideString;
-                continue;
-            }
-
+            if (escape) { escape = false; continue; }
+            if (char === '\\') { escape = true; continue; }
+            if (char === '"') { insideString = !insideString; continue; }
             if (!insideString) {
-                if (char === openChar) {
-                    balance++;
-                } else if (char === closeChar) {
+                if (char === openChar) balance++;
+                else if (char === closeChar) {
                     balance--;
-                    if (balance === 0) {
-                        endIdx = i;
-                        break;
-                    }
+                    if (balance === 0) { endIdx = i; break; }
                 }
             }
         }
 
         if (endIdx !== -1) {
-            const jsonStr = clean.substring(startIdx, endIdx + 1);
-            return JSON.parse(jsonStr);
+            return JSON.parse(clean.substring(startIdx, endIdx + 1));
         }
-        
-        // Fallback: If balancing failed (e.g. malformed JSON), try the naive approach
-        const lastIdx = clean.lastIndexOf(closeChar);
-        if (lastIdx !== -1) {
-             return JSON.parse(clean.substring(startIdx, lastIdx + 1));
-        }
-
         return defaultValue;
     } catch (e) {
         console.error("JSON Parse Error:", e);
@@ -95,507 +57,218 @@ const cleanAndParseJSON = (text: string, defaultValue: any) => {
     }
 }
 
-/**
- * AUTO-COMPLETE: Fast suggestions using Flash-Lite
- */
+const ensureString = (val: any): string => {
+    if (typeof val === 'string') return val;
+    if (val === null || val === undefined) return "";
+    if (typeof val === 'object') {
+        return Object.entries(val)
+            .map(([k, v]) => `${k.toUpperCase()}: ${v}`)
+            .join(". ");
+    }
+    return String(val);
+};
+
 export const getSearchSuggestions = async (query: string): Promise<string[]> => {
-    if (!apiKey || !query.trim() || query.length < 2) return [];
-    
-    // Using Flash-Lite for lowest latency as requested
-    const model = "gemini-2.5-flash-lite"; 
-
-    const prompt = `
-        You are an AI Search Assistant for a Visual Trend Platform.
-        
-        REFERENCE DICTIONARY:
-        ${KEYWORD_DICTIONARY_PROMPT}
-
-        User input: "${query}"
-        
-        Task: Suggest 5 specific, high-intent search queries strictly related to VISUAL TRENDS (Portrait styles, Cosplay characters, Filters, AI Tools, Video effects).
-        
-        Rules:
-        1. Ignore generic news or politics. Focus on Aesthetics/Visuals/Creators.
-        2. Use the Reference Dictionary vocabulary (e.g., "cyberpunk", "arcane style", "claymation", "outpainting").
-        3. If the input is broad (e.g. "style"), suggest specific dictionary categories (e.g. "Y2K aesthetics", "Ukiyo-e style").
-        
-        Return ONLY a raw JSON array of strings. 
-        Example: ["cyberpunk portrait lighting", "arcane jinx cosplay", "claymation filter tutorial"]
-    `;
-
+    if (!process.env.API_KEY || query.length < 2) return [];
+    const model = "gemini-flash-lite-latest"; 
+    const prompt = `Suggest 5 viral search queries for visual trends based on: "${query}". Return a raw JSON array of strings only.`;
     try {
         const response = await ai.models.generateContent({
             model,
             contents: prompt,
-            config: { 
-                responseMimeType: "application/json",
-                temperature: 0.3 // Lower temperature for more deterministic/focused completions
-            }
+            config: { responseMimeType: "application/json", temperature: 0.3 }
         });
-
         const data = cleanAndParseJSON(response.text || "[]", []);
         return Array.isArray(data) ? data.slice(0, 5) : [];
     } catch (error) {
-        console.warn("Auto-complete failed", error);
         return [];
     }
 };
 
-/**
- * ACTIVE SCAN: Searches for real trends based on user input.
- */
-export const searchGlobalTrends = async (query: string): Promise<TrendItem[]> => {
+export const searchGlobalTrends = async (
+    query: string, 
+    lang: 'en' | 'zh' = 'en', 
+    timePeriod: '1w' | '1m' | '3m' = '1m',
+    region: string = 'Global'
+): Promise<TrendItem[]> => {
+  const apiKey = getApiKey();
   if (!apiKey) throw new Error("API Key Missing");
-
-  // Using Standard Flash for reasoning + tool use
-  const model = "gemini-2.5-flash"; 
+  const model = "gemini-3-flash-preview"; 
+  const langInstruction = lang === 'zh' ? "Respond ONLY in Simplified Chinese (zh-CN)." : "Respond in English.";
   
-  const prompt = `
-    Conduct a broad "Global Trend Scan" for: "${query}".
-    
-    CRITICAL CONSTRAINT: Focus strictly on VISUAL, ENTERTAINMENT, and VIDEO content.
-    Prioritize trends that involve: Images, Short Videos (TikTok/Reels), Filters, Cosplay, Aesthetics, or Pop Culture Visuals.
-    Avoid dry text news or politics unless it has a strong visual meme component.
+  const prompt = `Perform a high-precision Global Trend Scan for: "${query}". 
+  Time Period: Last ${timePeriod} (e.g., 1w = 1 week).
+  Region: ${region}.
+  
+  Return exactly 5-8 trending topics. Focus on visual media and social aesthetics.
+  ${langInstruction}
+  
+  Format: JSON array of objects.
+  Properties: 
+  - topic: string
+  - category: string
+  - summary: string (max 20 words)
+  - trendScore: integer (0-100)
+  - riskLevel: low/medium/high
+  - platforms: string[]
+  - views: string (e.g., "100M", "500K")
+  - discussionCount: string (e.g., "50K")
+  - searchVolume: string (e.g., "1.2M")
+  - type: string (e.g., "photo editing", "lifestyle", "anime", "aesthetic style")
+  - relatedPosts: array of { title: string, url: string } (provide 2-3 real links if possible)
+  
+  Only return JSON. No prose.`;
 
-    1. Find 10-15 DISTINCT, REAL-TIME trending stories/events happening RIGHT NOW.
-    2. Mix categories: Visual Arts, Pop Culture, Viral Memes, Fashion, AI Video Tools.
-    3. CRITICAL: Identify the primary social platform for each (TikTok, Instagram, YouTube, X).
-    4. Provide a "Trend Score" (0-100) based on perceived virality.
-    
-    Output JSON Array format (Strict):
-    [
-      {
-        "topic": "Headline",
-        "category": "Filter|Cosplay|Portrait|Video|Meme",
-        "volume": 50000,
-        "velocity": 80,
-        "sentiment": "positive|neutral|negative",
-        "platforms": ["TikTok", "Instagram"],
-        "summary": "Brief context focusing on the visual/video aspect...",
-        "trendScore": 90,
-        "riskLevel": "low|medium|high",
-        "evidence": [
-             { "source": "Web", "snippet": "..." }
-        ]
-      }
-    ]
-  `;
+  const processData = (rawData: any[]) => {
+      if (!Array.isArray(rawData)) return [];
+      return rawData.map(item => ({
+        ...item,
+        id: `scan-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        timestamp: Date.now(),
+        summary: ensureString(item.summary),
+        platforms: Array.isArray(item.platforms) ? item.platforms : ['X', 'TikTok'],
+        history: Array.from({ length: 20 }, () => Math.floor(Math.random() * 40) + 60),
+        timePeriod,
+        region
+      }));
+  };
 
   try {
     const response = await ai.models.generateContent({
       model,
       contents: prompt,
-      config: { 
-          tools: [{ googleSearch: {} }] // Enforcing Google Search Grounding
-      },
+      config: { tools: [{ googleSearch: {} }] },
     });
-
     const data = cleanAndParseJSON(response.text || "[]", []);
-    
-    if (!Array.isArray(data)) return [];
-
-    return data.map((item: any, index: number) => ({
-      ...item,
-      id: `scan-${Date.now()}-${Math.floor(Math.random() * 1000)}`, // Random ID to prevent collisions on append
-      timestamp: Date.now(),
-      agentReady: (item.trendScore || 0) > 70,
-      agentType: item.category === 'Tech' ? 'tool' : (item.category === 'Meme' ? 'filter' : 'portrait'),
-      history: Array.from({ length: 20 }, () => Math.floor(Math.random() * 100))
-    }));
-
+    return processData(data);
   } catch (error) {
-    console.error("Scan Error:", error);
-    return [];
+    const response = await ai.models.generateContent({
+        model,
+        contents: prompt + " (Internal knowledge only)",
+        config: { responseMimeType: "application/json" },
+    });
+    return processData(cleanAndParseJSON(response.text || "[]", []));
   }
 };
 
-/**
- * DEEP ANALYSIS: Generates the Dashboard Report with DICTIONARY GUIDANCE
- */
-export const analyzeDeepDive = async (trend: TrendItem): Promise<AnalysisResult> => {
-    if (!apiKey) throw new Error("API Key Missing");
-    const model = "gemini-2.5-flash"; 
+export const analyzeDeepDive = async (trend: TrendItem, lang: 'en' | 'zh' = 'en'): Promise<AnalysisResult> => {
+    const model = "gemini-3-flash-preview"; 
+    const langInstruction = lang === 'zh' ? "Respond ONLY in Simplified Chinese (zh-CN). Keep the prompt in English if technical, but explain in Chinese." : "Respond in English.";
+
+    const prompt = `Perform a technical Creator Production Analysis for "${trend.topic}".
+    Use the dictionary for classification: ${KEYWORD_DICTIONARY_PROMPT}.
     
-    const prompt = `
-      You are an expert Social Media Strategist.
-      
-      Trend to Analyze: "${trend.topic}"
-      Context: ${trend.summary}
-
-      ${KEYWORD_DICTIONARY_PROMPT}
-
-      TASK:
-      1. Consult the REFERENCE KEYWORD DICTIONARY above.
-      2. Find the BEST MATCH category and keyword for this trend.
-      3. Create a comprehensive "Creator Guideline" JSON object. 
-         IMPORTANT: The 'guideline' object MUST be populated. Do not leave it empty.
-
-      OUTPUT JSON SCHEMA:
-      {
-        "deepDive": "2-3 sentences analyzing why this is trending and the psychological hook.",
-        "marketFit": "Specific target audience demographics (age, interest, location).",
-        "guideline": {
-            "matchedCategory": "Copy exact category name from Dictionary (e.g. '1.1 Style-driven Portrait')",
-            "coreKeyword": "Copy exact keyword from Dictionary (e.g. 'cyberpunk portrait')",
-            "productionSteps": [
-                "Step 1: Detailed instruction...", 
-                "Step 2: Detailed instruction...", 
-                "Step 3: ...", 
-                "Step 4: ..."
-            ],
-            "recommendedTools": ["Tool Name 1", "Tool Name 2"],
-            "commercialPotential": "Low|Medium|High"
-        },
-        "visualPrompt": "A highly detailed, photorealistic AI image prompt to generate a perfect example of this trend. Mention lighting, camera angle, and style.",
-        "scores": {
-            "monetization": 0-100,
-            "virality": 0-100,
-            "feasibility": 0-100,
-            "competition": 0-100
-        },
-        "strategies": [
-          { "platform": "TikTok", "hook": "Visual hook description...", "body": "Caption idea...", "hashtags": ["tag1", "tag2"] },
-          { "platform": "Instagram", "hook": "Visual hook description...", "body": "Caption idea...", "hashtags": ["tag1", "tag2"] }
-        ]
+    The goal is to provide a technical blueprint for creators to reproduce this trend perfectly.
+    ${langInstruction}
+    
+    Return JSON format:
+    {
+      "deepDive": "Strategic context on why this aesthetic is trending now.",
+      "marketFit": "The core demographic/audience for this trend.",
+      "visualPrompt": "A highly detailed, professional Midjourney v6 / Flux.1 prompt including camera settings, lighting, and style keywords. (Keep Prompt in English)",
+      "scores": {"monetization": 0-100, "virality": 0-100, "feasibility": 0-100, "competition": 0-100},
+      "guideline": {
+        "matchedCategory": "Category from dictionary (e.g., 3.1 Anime Filter)",
+        "coreKeyword": "The primary aesthetic keyword (e.g., 'Retro PS2 Look')",
+        "productionSteps": ["Step-by-step technical instructions for capturing or editing the content."],
+        "requiredAssets": ["List of physical props, digital overlays, or specific photo types needed."],
+        "recommendedTools": ["Specific professional software or viral apps (e.g., CapCut, Luma AI, Lightroom)."],
+        "commercialPotential": "Low/Medium/High"
       }
-    `;
+    }
+    
+    CRITICAL: Avoid generic advice. Be technical, practical, and focus on visual production techniques.`;
   
     try {
-      // Retry Logic: Try with Tools first, fallback to basic generation if tools fail (500 error)
       let response;
       try {
           response = await ai.models.generateContent({
             model,
             contents: prompt,
-            config: { 
-                tools: [{ googleSearch: {} }] 
-            },
+            config: { tools: [{ googleSearch: {} }] },
           });
-      } catch (toolError) {
-          console.warn("Analysis with Google Search failed, retrying without tools...", toolError);
+      } catch (e) {
           response = await ai.models.generateContent({
               model,
               contents: prompt,
-              config: { 
-                  responseMimeType: "application/json"
-              },
+              config: { responseMimeType: "application/json" },
           });
       }
   
       const data = cleanAndParseJSON(response.text || "{}", {});
       
-      let relatedLinks: { title: string; url: string }[] = [];
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-      if (chunks) {
-          chunks.forEach((chunk: any) => {
-              if (chunk.web?.uri) {
-                  relatedLinks.push({ title: chunk.web.title || "Source", url: chunk.web.uri });
-              }
-          });
-      }
-      
-      // Robust Guideline Construction
-      // We ensure nested arrays exist even if AI returns a partial object
-      const rawGuideline = data.guideline || {};
-      const safeGuideline = {
-          matchedCategory: rawGuideline.matchedCategory || "General Trend",
-          coreKeyword: rawGuideline.coreKeyword || trend.topic,
-          productionSteps: Array.isArray(rawGuideline.productionSteps) ? rawGuideline.productionSteps : ["Research the topic", "Create engaging visual", "Post with trending audio"],
-          recommendedTools: Array.isArray(rawGuideline.recommendedTools) ? rawGuideline.recommendedTools : ["Camera", "Editing App"],
-          commercialPotential: rawGuideline.commercialPotential || "Medium"
-      };
-  
       return {
         trendId: trend.id,
-        deepDive: data.deepDive || "Analysis pending...",
-        marketFit: data.marketFit || "General Audience",
-        strategies: Array.isArray(data.strategies) ? data.strategies : [], // Ensure Array
-        visualPrompt: data.visualPrompt || `A highly detailed, photorealistic AI image prompt to generate a perfect example of this trend. Mention lighting, camera angle, and style.`,
+        deepDive: ensureString(data.deepDive),
+        marketFit: ensureString(data.marketFit),
+        strategies: [],
+        visualPrompt: ensureString(data.visualPrompt),
         scores: data.scores || { monetization: 50, virality: 50, feasibility: 50, competition: 50 },
-        relatedLinks,
-        guideline: safeGuideline
+        relatedLinks: [],
+        guideline: data.guideline || { 
+          matchedCategory: "General Intelligence", 
+          coreKeyword: trend.topic, 
+          productionSteps: [], 
+          requiredAssets: [],
+          recommendedTools: [], 
+          commercialPotential: "Medium" 
+        }
       };
-  
     } catch (error) {
       console.error("Analysis Error:", error);
       throw error;
     }
   };
 
-/**
- * GENERATE IMAGE: Using gemini-3-pro-image-preview
- */
 export const generateTrendImage = async (prompt: string, size: '1K' | '2K' | '4K' = '1K') => {
-    if (!apiKey) throw new Error("API Key not found");
-    const primaryModel = "gemini-3-pro-image-preview";
+    // When using gemini-3-pro-image-preview, users MUST select their own API key.
+    // @ts-ignore
+    if (window.aistudio && !(await window.aistudio.hasSelectedApiKey())) {
+        // @ts-ignore
+        await window.aistudio.openSelectKey();
+    }
     
+    // Create fresh GoogleGenAI instance right before the call to ensure updated key usage
+    const imageAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     try {
-        const response = await ai.models.generateContent({
-            model: primaryModel,
+        const response = await imageAi.models.generateContent({
+            model: "gemini-3-pro-image-preview",
             contents: { parts: [{ text: prompt }] },
-            config: {
-                imageConfig: {
-                    aspectRatio: "1:1", 
-                    imageSize: size
-                }
-            }
+            config: { imageConfig: { aspectRatio: "1:1", imageSize: size } }
         });
+        const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
+        return part ? `data:${part.inlineData?.mimeType};base64,${part.inlineData?.data}` : null;
+    } catch (e: any) {
+        const errorMsg = e?.message || "";
+        const isAuthError = errorMsg.includes("Requested entity was not found.") || 
+                           errorMsg.includes("PERMISSION_DENIED") || 
+                           errorMsg.includes("403");
 
-        if (response.candidates?.[0]?.content?.parts) {
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData && part.inlineData.data) {
-                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                }
-            }
+        if (isAuthError && (window as any).aistudio) {
+            // Prompt user to select a valid paid project API key
+            (window as any).aistudio.openSelectKey();
         }
-    } catch (error) {
-        console.warn("[ImageGen] Primary model failed, attempting fallback...", error);
+        console.error("Image Generation Error:", e);
+        return null;
     }
-
-    try {
-        const fallbackModel = "gemini-2.5-flash-image";
-        const response = await ai.models.generateContent({
-            model: fallbackModel,
-            contents: { parts: [{ text: prompt }] },
-            config: {
-                imageConfig: { aspectRatio: "1:1" }
-            }
-        });
-
-        if (response.candidates?.[0]?.content?.parts) {
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData && part.inlineData.data) {
-                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                }
-            }
-        }
-    } catch (fallbackError) {
-        console.error("[ImageGen] All models failed", fallbackError);
-    }
-
-    return null;
 };
 
-/**
- * AGENT: Process Social Signals
- */
 export const runGrowthAnalyticsAgent = async (signals: SocialSignal[]): Promise<TrendReportItem[]> => {
-    if (!apiKey) throw new Error("API Key Missing");
-    const model = "gemini-2.5-flash";
-    
-    if (!signals || signals.length === 0) return [];
-
-    const signalsJson = JSON.stringify(signals);
-    const today = new Date().toISOString().split('T')[0];
-
-    const prompt = `
-    You are an expert Growth Analytics + Social Trend Intelligence agent.
-    Current Date: ${today}
-    Input Signals: ${signalsJson}
-    Task: Transform signals into dashboard JSON.
-    Output JSON Array (TrendReportItem schema).
-    Ensure each item has 'metrics', 'scores', 'risks', 'build_plan' objects populated.
-    `;
-
+    const model = "gemini-3-pro-preview";
+    const prompt = `Analyze these signals: ${JSON.stringify(signals)}. Return JSON array of TrendReportItems.`;
     try {
         const response = await ai.models.generateContent({
             model,
             contents: prompt,
             config: { responseMimeType: "application/json" },
         });
-        
         const parsed = cleanAndParseJSON(response.text || "[]", []);
-        if (!Array.isArray(parsed)) return [];
-        
-        // Filter out nulls/primitives to prevent crash on property access (e.g. metrics.search_index)
-        return parsed
-            .filter((item: any) => item && typeof item === 'object')
-            .map((item: any) => ({
-                date: item.date || today,
-                window_hours: item.window_hours || 24,
-                platform: item.platform || 'Unknown',
-                keyword: item.keyword || 'Unknown Trend',
-                category: item.category || 'General',
-                metrics: {
-                    search_index: item.metrics?.search_index || 0,
-                    views: item.metrics?.views || 0,
-                    likes: item.metrics?.likes || 0,
-                    comments: item.metrics?.comments || 0,
-                    shares: item.metrics?.shares || 0,
-                    saves: item.metrics?.saves || 0,
-                    posts: item.metrics?.posts || 0,
-                    prev_views: item.metrics?.prev_views || 0,
-                    prev_likes: item.metrics?.prev_likes || 0,
-                    prev_comments: item.metrics?.prev_comments || 0,
-                    prev_shares: item.metrics?.prev_shares || 0,
-                    prev_saves: item.metrics?.prev_saves || 0,
-                    prev_posts: item.metrics?.prev_posts || 0,
-                },
-                scores: {
-                    H: item.scores?.H || 0,
-                    V: item.scores?.V || 0,
-                    D: item.scores?.D || 0,
-                    F: item.scores?.F || 0,
-                    M: item.scores?.M || 0,
-                    R: item.scores?.R || 0,
-                    trend_score: item.scores?.trend_score || 0,
-                },
-                lifecycle: item.lifecycle || 'emerging',
-                agent_ready: item.agent_ready || false,
-                build_plan: {
-                    recommended: item.build_plan?.recommended || false,
-                    agent_type: item.build_plan?.agent_type || 'Custom',
-                    model_stack: item.build_plan?.model_stack || [],
-                    interaction: item.build_plan?.interaction || '',
-                    expected_time_to_ship_days: item.build_plan?.expected_time_to_ship_days || 0,
-                },
-                go_to_market: {
-                    primary_platform: item.go_to_market?.primary_platform || 'Generic',
-                    content_format: item.go_to_market?.content_format || 'Post',
-                    hook_examples: item.go_to_market?.hook_examples || [],
-                    creator_fit: item.go_to_market?.creator_fit || 'General',
-                },
-                risks: {
-                    ip_risk: item.risks?.ip_risk || 'low',
-                    saturation_risk: item.risks?.saturation_risk || 'low',
-                    notes: item.risks?.notes || 'No notes',
-                },
-                assumptions: item.assumptions || [],
-                author: `Analyst_Agent_${Math.floor(Math.random() * 900) + 100}`,
-                sample_content: item.sample_content || item.risks?.notes || `Detected significant signal for ${item.keyword || 'trend'} on ${item.platform || 'social'}.`
-            }));
+        return (parsed as any[]).map(item => ({
+            ...item,
+            keyword: ensureString(item.keyword),
+            sample_content: ensureString(item.sample_content)
+        }));
     } catch (error) {
-        console.error("Growth Agent Error:", error);
-        return [];
-    }
-};
-
-/**
- * Platform News Search Result
- */
-export interface PlatformNewsItem {
-    id: string;
-    title: string;
-    summary: string;
-    platform: 'LinkedIn' | 'Facebook';
-    tag: string;
-    url?: string;
-    publishedAt?: string;
-    engagement?: {
-        likes?: number;
-        comments?: number;
-        shares?: number;
-    };
-    sentiment: 'positive' | 'neutral' | 'negative';
-    relevanceScore: number;
-}
-
-/**
- * PLATFORM NEWS SEARCH: Search LinkedIn and Facebook trends by tags
- * Uses Google Search grounding to find real-time news and posts
- */
-export const searchPlatformNews = async (
-    tags: string[], 
-    platforms: ('LinkedIn' | 'Facebook')[] = ['LinkedIn', 'Facebook']
-): Promise<PlatformNewsItem[]> => {
-    if (!apiKey) {
-        console.warn("[Gemini] API Key missing, skipping platform news search");
-        return [];
-    }
-    
-    if (!tags || tags.length === 0) {
-        console.warn("[Gemini] No tags provided for platform news search");
-        return [];
-    }
-
-    const model = "gemini-2.5-flash";
-    const today = new Date().toISOString().split('T')[0];
-    
-    const prompt = `
-    You are a Social Media Intelligence Agent specializing in LinkedIn and Facebook trend analysis.
-    
-    Current Date: ${today}
-    Search Tags: ${tags.join(', ')}
-    Target Platforms: ${platforms.join(', ')}
-    
-    TASK:
-    Search for the LATEST news, posts, and trending discussions on ${platforms.join(' and ')} related to these tags.
-    Focus on:
-    - Professional insights and industry news (LinkedIn)
-    - Viral posts and community discussions (Facebook)
-    - Recent announcements, product launches, or trending topics
-    - Influencer posts and thought leadership content
-    
-    For each tag, find 2-3 relevant items per platform.
-    
-    OUTPUT JSON ARRAY (strict schema):
-    [
-      {
-        "title": "Headline or post title",
-        "summary": "2-3 sentence summary of the content",
-        "platform": "LinkedIn" or "Facebook",
-        "tag": "The matching tag from input",
-        "url": "Source URL if available",
-        "publishedAt": "ISO date string or 'recent'",
-        "engagement": {
-          "likes": estimated number,
-          "comments": estimated number,
-          "shares": estimated number
-        },
-        "sentiment": "positive|neutral|negative",
-        "relevanceScore": 0-100
-      }
-    ]
-    
-    Return 8-15 items total, sorted by relevanceScore descending.
-    Only include items that are genuinely relevant and recent (within last 7 days if possible).
-    `;
-
-    try {
-        console.log(`[Gemini] 🔍 Searching ${platforms.join('/')} for tags: ${tags.join(', ')}`);
-        
-        const response = await ai.models.generateContent({
-            model,
-            contents: prompt,
-            config: { 
-                tools: [{ googleSearch: {} }] // Use Google Search grounding for real-time data
-            },
-        });
-
-        const data = cleanAndParseJSON(response.text || "[]", []);
-        
-        if (!Array.isArray(data)) {
-            console.warn("[Gemini] Invalid response format for platform news");
-            return [];
-        }
-
-        // Process and validate results
-        const results: PlatformNewsItem[] = data
-            .filter((item: any) => item && typeof item === 'object')
-            .map((item: any, index: number) => ({
-                id: `news-${Date.now()}-${index}`,
-                title: item.title || 'Untitled',
-                summary: item.summary || '',
-                platform: item.platform === 'Facebook' ? 'Facebook' : 'LinkedIn',
-                tag: item.tag || tags[0],
-                url: item.url || undefined,
-                publishedAt: item.publishedAt || undefined,
-                engagement: {
-                    likes: item.engagement?.likes || 0,
-                    comments: item.engagement?.comments || 0,
-                    shares: item.engagement?.shares || 0,
-                },
-                sentiment: ['positive', 'neutral', 'negative'].includes(item.sentiment) 
-                    ? item.sentiment 
-                    : 'neutral',
-                relevanceScore: Math.min(100, Math.max(0, item.relevanceScore || 50)),
-            }));
-
-        console.log(`[Gemini] ✅ Found ${results.length} platform news items`);
-        return results;
-
-    } catch (error) {
-        console.error("[Gemini] Platform news search error:", error);
         return [];
     }
 };

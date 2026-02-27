@@ -1,59 +1,80 @@
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Loader2, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Loader2, CheckCircle2, Server, Globe, Cpu } from 'lucide-react';
 
 interface IntroLoaderProps {
     isDataReady: boolean;
     onComplete: () => void;
 }
 
+const LOADING_STEPS = [
+    { text: "INITIALIZING CORE SYSTEMS...", icon: Cpu },
+    { text: "ESTABLISHING NEURAL UPLINK...", icon: Server },
+    { text: "SCANNING GLOBAL VISUAL FEEDS...", icon: Globe }, // This is where we wait for data
+    { text: "PROCESSING SIGNAL INTELLIGENCE...", icon: Search },
+    { text: "SYSTEM READY.", icon: CheckCircle2 }
+];
+
 export function IntroLoader({ isDataReady, onComplete }: IntroLoaderProps) {
-  const [displayText, setDisplayText] = useState("");
-  const targetText = "Analyzing Global Visual Trends...";
+  const [stepIndex, setStepIndex] = useState(0);
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
   
-  // 1. Minimum Branding Timer (Ensures the logo and text are seen for at least 3s)
+  // 1. Minimum Branding Timer (Reduced for faster response)
   useEffect(() => {
     const timer = setTimeout(() => {
         setMinTimeElapsed(true);
-    }, 3000);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Watch for completion condition (Time + Data)
+  // 2. Step Sequencer
   useEffect(() => {
-      if (minTimeElapsed && isDataReady) {
-          // Add a small buffer before unmounting for the "100%" visual
-          const exitTimer = setTimeout(() => {
+      // Step 0 -> 1 -> 2 (Scanning)
+      if (stepIndex < 2) {
+          const timeout = setTimeout(() => setStepIndex(prev => prev + 1), 200);
+          return () => clearTimeout(timeout);
+      }
+      
+      // Step 2 -> 3 (Only if data is ready)
+      if (stepIndex === 2 && isDataReady) {
+           setStepIndex(3);
+      }
+
+      // Step 3 -> 4 (Final processing)
+      if (stepIndex === 3) {
+          const timeout = setTimeout(() => setStepIndex(4), 150);
+          return () => clearTimeout(timeout);
+      }
+
+      // Step 4 -> Complete (Wait for min time)
+      if (stepIndex === 4 && minTimeElapsed) {
+          const timeout = setTimeout(() => {
               onComplete();
-          }, 800);
-          return () => clearTimeout(exitTimer);
+          }, 200); // Reduced buffer
+          return () => clearTimeout(timeout);
       }
-  }, [minTimeElapsed, isDataReady, onComplete]);
 
-  // 3. Typewriter Effect
-  useEffect(() => {
-    let i = 0;
-    const typing = setInterval(() => {
-      if (i < targetText.length) {
-        setDisplayText(prev => prev + targetText.charAt(i));
-        i++;
-      } else {
-        clearInterval(typing);
-      }
-    }, 50);
-    return () => clearInterval(typing);
-  }, []);
+  }, [stepIndex, isDataReady, minTimeElapsed, onComplete]);
 
-  // Calculate fake progress for the bar
-  const progressWidth = isDataReady ? "100%" : (minTimeElapsed ? "90%" : "60%");
+  // Calculate Progress
+  // Base progress based on steps, capped at 90% if data isn't ready
+  let progressPercent = 0;
+  if (stepIndex === 0) progressPercent = 10;
+  else if (stepIndex === 1) progressPercent = 30;
+  else if (stepIndex === 2) progressPercent = 60; // Waiting for data
+  else if (stepIndex === 3) progressPercent = 90;
+  else if (stepIndex === 4) progressPercent = 100;
+
+  // Visual text & Icon
+  const CurrentIcon = LOADING_STEPS[Math.min(stepIndex, LOADING_STEPS.length - 1)].icon;
+  const currentText = LOADING_STEPS[Math.min(stepIndex, LOADING_STEPS.length - 1)].text;
 
   return (
     <motion.div 
-        className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center"
+        className="fixed inset-0 z-[9999] bg-[#050505] flex flex-col items-center justify-center font-sans"
         exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
-        transition={{ duration: 0.8, ease: "easeInOut" }}
+        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
     >
         {/* Background Grid & Aurora */}
         <div className="absolute inset-0 opacity-[0.1]" 
@@ -62,16 +83,20 @@ export function IntroLoader({ isDataReady, onComplete }: IntroLoaderProps) {
                backgroundSize: '30px 30px' 
              }} 
         />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-gradient-to-tr from-indigo-900/40 to-purple-900/40 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-gradient-to-tr from-indigo-900/40 to-purple-900/40 rounded-full blur-[120px] pointer-events-none animate-pulse" />
 
         {/* --- BRAND LOGO: Crystal Butterfly --- */}
-        <div className="mb-16 relative group perspective-1000">
+        <div className="mb-20 relative group perspective-1000">
              
              {/* Glass Squircle Container - Thick & High Fidelity */}
              <motion.div 
-                initial={{ rotateX: 10, rotateY: -10 }}
-                animate={{ rotateX: [10, -5, 10], rotateY: [-10, 5, -10] }}
-                transition={{ duration: 8, ease: "easeInOut", repeat: Infinity }}
+                initial={{ rotateX: 10, rotateY: -10, y: 20, opacity: 0 }}
+                animate={{ rotateX: [10, -5, 10], rotateY: [-10, 5, -10], y: 0, opacity: 1 }}
+                transition={{ 
+                    y: { duration: 1, ease: "easeOut" },
+                    opacity: { duration: 1 },
+                    default: { duration: 8, ease: "easeInOut", repeat: Infinity }
+                }}
                 className="relative w-64 h-64 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] flex items-center justify-center shadow-[0_20px_80px_rgba(0,0,0,0.6),inset_0_0_20px_rgba(255,255,255,0.05)] overflow-hidden"
              >
                 {/* Edge Highlights */}
@@ -87,10 +112,6 @@ export function IntroLoader({ isDataReady, onComplete }: IntroLoaderProps) {
                             <stop offset="50%" stopColor="#BD00FF" /> {/* Purple */}
                             <stop offset="100%" stopColor="#FF7E5F" /> {/* Pink */}
                         </linearGradient>
-                        <radialGradient id="nodeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(100)">
-                            <stop stopColor="white" />
-                            <stop offset="1" stopColor="#00F0FF" stopOpacity="0" />
-                        </radialGradient>
                     </defs>
                     
                     {/* Right Wing (Foreground) - Organic Shape with Morphing */}
@@ -129,77 +150,64 @@ export function IntroLoader({ isDataReady, onComplete }: IntroLoaderProps) {
                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
                     />
                     
-                    {/* Tech Nodes (Molecular Overlay) */}
+                    {/* Tech Nodes Overlay */}
                     <g className="mix-blend-overlay">
-                        <motion.line x1="100" y1="120" x2="140" y2="60" stroke="#00F0FF" strokeWidth="1" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{duration: 2, repeat: Infinity}} />
-                        <motion.line x1="140" y1="60" x2="180" y2="100" stroke="#00F0FF" strokeWidth="1" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{duration: 2, repeat: Infinity, delay: 0.5}} />
-                        <motion.line x1="180" y1="100" x2="140" y2="160" stroke="#00F0FF" strokeWidth="1" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{duration: 2, repeat: Infinity, delay: 1}} />
-                        <motion.line x1="140" y1="160" x2="100" y2="170" stroke="#00F0FF" strokeWidth="1" animate={{ opacity: [0.3, 0.8, 0.3] }} transition={{duration: 2, repeat: Infinity, delay: 1.5}} />
-                        
-                        <circle cx="140" cy="60" r="3" fill="white" className="animate-pulse" />
-                        <circle cx="180" cy="100" r="2" fill="#00F0FF" className="animate-pulse" />
-                        <circle cx="140" cy="160" r="3" fill="white" className="animate-pulse" />
+                        <motion.circle cx="140" cy="60" r="3" fill="white" animate={{ r: [2, 4, 2], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }} />
+                        <motion.circle cx="180" cy="100" r="2" fill="#00F0FF" animate={{ r: [1, 3, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: 0.5 }} />
+                        <motion.circle cx="60" cy="160" r="2" fill="#FF7E5F" animate={{ r: [1, 3, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity, delay: 1 }} />
                     </g>
 
-                    {/* Central Body (Light Source) */}
+                    {/* Central Body */}
                     <ellipse cx="100" cy="140" rx="4" ry="40" fill="white" opacity="0.8" filter="blur(4px)" />
                     <ellipse cx="100" cy="140" rx="2" ry="30" fill="white" />
                 </svg>
              </motion.div>
         </div>
 
-        {/* Mock Search Bar (Blue/Purple Theme) */}
-        <div className="w-[90%] max-w-md relative mb-8 group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00F0FF]">
-                <Search size={20} />
-            </div>
-            <div className="h-14 w-full bg-[#0a0a0a] border border-indigo-500/30 group-hover:border-indigo-400/60 rounded-full flex items-center pl-12 pr-4 shadow-[0_0_40px_rgba(100,0,255,0.2)] transition-colors">
-                <span className="text-indigo-100 font-mono text-sm tracking-wide">
-                    {displayText}
-                    <span className="inline-block w-2 h-4 bg-[#BD00FF] ml-1 animate-pulse align-middle shadow-[0_0_10px_#BD00FF]" />
-                </span>
-            </div>
+        {/* Loading Text & Sequence */}
+        <div className="w-[90%] max-w-sm flex flex-col items-center gap-4">
             
-            {/* Scan Line Animation */}
-            {!isDataReady && (
+            <AnimatePresence mode='wait'>
                 <motion.div 
-                    initial={{ left: '5%', width: '0%' }}
-                    animate={{ left: '0%', width: '100%', opacity: [0, 1, 0] }}
-                    transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
-                    className="absolute bottom-0 h-[2px] bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent shadow-[0_0_10px_#00d4ff]"
-                />
-            )}
-        </div>
-
-        {/* Loading Metrics */}
-        <div className="flex flex-col items-center gap-2">
-            <div className="flex items-center gap-2 text-[#00F0FF] font-mono text-xs uppercase tracking-widest h-4">
-                {isDataReady ? (
-                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-green-500">
-                         <CheckCircle2 size={12} />
-                         <span>System Ready</span>
-                     </motion.div>
-                ) : (
-                    <>
-                        <Loader2 size={12} className="animate-spin text-[#BD00FF]" />
-                        <span className="text-indigo-300">Ingesting Social Signals</span>
-                    </>
-                )}
-            </div>
+                    key={stepIndex}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center gap-3 text-[#00F0FF] h-6"
+                >
+                    <CurrentIcon size={16} className={stepIndex < 4 ? "animate-pulse" : ""} />
+                    <span className="font-mono text-xs font-bold tracking-[0.2em] uppercase text-center min-w-[240px]">
+                        {currentText}
+                    </span>
+                </motion.div>
+            </AnimatePresence>
             
-            <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden relative">
+            {/* High Tech Progress Bar */}
+            <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden relative border border-white/5">
+                {/* Background Scanline */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite] w-full" />
+                
+                {/* Fill Bar */}
                 <motion.div 
                     initial={{ width: "0%" }}
-                    animate={{ width: progressWidth }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                    className={`h-full ${isDataReady ? 'bg-green-500' : 'bg-gradient-to-r from-[#00F0FF] to-[#BD00FF]'}`}
-                />
+                    animate={{ width: `${progressPercent}%` }}
+                    transition={{ duration: 1, ease: "easeInOut" }}
+                    className={`h-full relative shadow-[0_0_15px_rgba(0,240,255,0.5)] ${stepIndex === 4 ? 'bg-green-500' : 'bg-gradient-to-r from-[#00F0FF] to-[#BD00FF]'}`}
+                >
+                    <div className="absolute right-0 top-0 bottom-0 w-4 bg-white blur-[4px]" />
+                </motion.div>
+            </div>
+
+            {/* Version / Metadata */}
+            <div className="flex justify-between w-full text-[9px] font-mono text-slate-600 mt-2 uppercase tracking-widest">
+                <span>Core v3.4.1</span>
+                <span>Signal: {isDataReady ? 'LOCKED' : 'SEARCHING...'}</span>
             </div>
         </div>
 
         {/* Disclaimer */}
-        <div className="absolute bottom-8 text-[10px] text-slate-600 font-mono">
-            POWERED BY GOOGLE GEMINI 3 PRO
+        <div className="absolute bottom-8 text-[10px] text-slate-700 font-mono">
+            SECURE CONNECTION // TREND PULSE AI
         </div>
     </motion.div>
   );
