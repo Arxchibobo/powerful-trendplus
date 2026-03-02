@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // 后端 API 地址配置
-const BACKEND_URL = process.env.BACKEND_URL || 'https://adalpha-backend-88968107416.us-central1.run.app';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://adalpha-backend-88968107416.us-central1.run.app';
 
 export interface VKSDataPoint {
   time: string;
