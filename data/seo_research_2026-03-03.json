@@ -1,0 +1,402 @@
+[
+  {
+    "keyword": "white background",
+    "func": "白色背景生成",
+    "kd": 70,
+    "volume": 201000,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/white-background",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "bg",
+    "func": "背景移除",
+    "kd": 78,
+    "volume": 60500,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/background-remover",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "blue background",
+    "func": "蓝色背景生成",
+    "kd": 42,
+    "volume": 49500,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/background-remover/blue-background",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "png maker",
+    "func": "PNG透明图制作",
+    "kd": 71,
+    "volume": 49500,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/png-maker/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "transparent background",
+    "func": "透明背景生成",
+    "kd": 71,
+    "volume": 40500,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/transparent-background",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "unblur image",
+    "func": "图片去模糊",
+    "kd": 60,
+    "volume": 27100,
+    "region": "US",
+    "comp_url": "https://picsart.com/ai-image-enhancer/unblur/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "test of attractiveness",
+    "func": "颜值测试",
+    "kd": 31,
+    "volume": 14800,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/ai-attractiveness-test/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "image quality enhancer",
+    "func": "图片质量增强",
+    "kd": 79,
+    "volume": 14800,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "attractiveness test",
+    "func": "颜值测试",
+    "kd": 41,
+    "volume": 12100,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/ai-attractiveness-test/",
+    "coverage": "✅已覆盖",
+    "note": "Sitemap: creative/attractiveness-test"
+  },
+  {
+    "keyword": "how attractive am i",
+    "func": "颜值测试",
+    "kd": 29,
+    "volume": 12100,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/ai-attractiveness-test/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "photo enhancer ai",
+    "func": "AI照片增强",
+    "kd": 78,
+    "volume": 12100,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "remove object from image",
+    "func": "移除图片物体",
+    "kd": 73,
+    "volume": 9900,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/remove-object-from-photo",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "rainbow background",
+    "func": "rainbow background",
+    "kd": 36,
+    "volume": 9900,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/background-library/rainbow-backgrounds",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "ai remover",
+    "func": "AI物体移除",
+    "kd": 78,
+    "volume": 8100,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/remove-object-from-photo",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "photo enhancer free",
+    "func": "免费照片增强",
+    "kd": 80,
+    "volume": 8100,
+    "region": "US",
+    "comp_url": "https://app.remini.ai/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "what will my baby look like",
+    "func": "宝宝长相预测",
+    "kd": 52,
+    "volume": 8100,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/baby-generator/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "am i pretty",
+    "func": "我好看吗测试",
+    "kd": 46,
+    "volume": 8100,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/pretty-scale/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "picture quality enhancer",
+    "func": "图片质量增强",
+    "kd": 80,
+    "volume": 8100,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "enhanced pic",
+    "func": "enhanced pic",
+    "kd": 78,
+    "volume": 8100,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "image in landscape",
+    "func": "竖图转横图",
+    "kd": 40,
+    "volume": 6600,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/portrait-to-landscape/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "video enhancer",
+    "func": "video enhancer",
+    "kd": 59,
+    "volume": 6600,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/video-enhancer/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "enhance picture quality",
+    "func": "enhance picture quality",
+    "kd": 80,
+    "volume": 6600,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "enhancer image",
+    "func": "enhancer image",
+    "kd": 79,
+    "volume": 6600,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "image enhancer free",
+    "func": "免费图片增强",
+    "kd": 77,
+    "volume": 6600,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "face app",
+    "func": "face app",
+    "kd": 76,
+    "volume": 5400,
+    "region": "US",
+    "comp_url": "https://www.faceapp.com/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "photo room",
+    "func": "photo room",
+    "kd": 49,
+    "volume": 4400,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "free photo enhancer",
+    "func": "照片增强",
+    "kd": 79,
+    "volume": 4400,
+    "region": "US",
+    "comp_url": "https://app.remini.ai/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "increase quality of picture",
+    "func": "increase quality of picture",
+    "kd": 79,
+    "volume": 4400,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "photo room background remover",
+    "func": "背景移除",
+    "kd": 46,
+    "volume": 3600,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/background-remover",
+    "coverage": "✅已覆盖",
+    "note": "Sitemap: tools/background-remover"
+  },
+  {
+    "keyword": "color a background",
+    "func": "背景换色",
+    "kd": 50,
+    "volume": 3600,
+    "region": "US",
+    "comp_url": "https://www.photoroom.com/tools/change-background-color",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "changer fond",
+    "func": "changer fond",
+    "kd": 77,
+    "volume": 3600,
+    "region": "US",
+    "comp_url": "https://www.fotor.com/features/backgrounds.html",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "image resolution enhancer",
+    "func": "image resolution enhancer",
+    "kd": 80,
+    "volume": 3600,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "enhance picture",
+    "func": "enhance picture",
+    "kd": 80,
+    "volume": 3600,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "cut pit",
+    "func": "cut pit",
+    "kd": 76,
+    "volume": 3600,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "remin",
+    "func": "remin",
+    "kd": 80,
+    "volume": 2900,
+    "region": "US",
+    "comp_url": "https://remini.ai/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "free image enhancer",
+    "func": "图片增强",
+    "kd": 80,
+    "volume": 2900,
+    "region": "US",
+    "comp_url": "https://remini.ai/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "cutout.pro",
+    "func": "cutout.pro",
+    "kd": 48,
+    "volume": 2900,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "image enhance",
+    "func": "图片增强",
+    "kd": 79,
+    "volume": 2900,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "increase the quality of image",
+    "func": "increase the quality of image",
+    "kd": 79,
+    "volume": 2900,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  },
+  {
+    "keyword": "pic enhance",
+    "func": "pic enhance",
+    "kd": 80,
+    "volume": 2900,
+    "region": "US",
+    "comp_url": "https://www.cutout.pro/photo-enhancer-sharpener-upscaler",
+    "coverage": "✨新机会",
+    "note": ""
+  }
+]
