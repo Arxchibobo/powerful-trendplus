@@ -109,3 +109,125 @@ export interface TrendReportItem {
     saturation_risk: 'low' | 'medium' | 'high';
   };
 }
+
+// ============================================
+// Omni-Channel Selection Agent Types
+// ============================================
+
+/** SEO keyword data from Semrush API */
+export interface SEOKeyword {
+  keyword: string;
+  position: number;
+  searchVolume: number;
+  cpc: number;
+  competition: number;
+  kd: number;
+  traffic: number;
+  trafficPercent: number;
+  url: string;
+  domain: string;
+  region: string;
+}
+
+/** Semrush competitor domain data */
+export interface SEOCompetitor {
+  domain: string;
+  commonKeywords: number;
+  organicKeywords: number;
+  organicTraffic: number;
+  adwordsKeywords: number;
+}
+
+/** Regional search volume for a phrase */
+export interface SEORegionVolume {
+  keyword: string;
+  region: string;
+  volume: number;
+  cpc: number;
+  competition: number;
+}
+
+/** Aggregated SEO analysis result */
+export interface SEOAnalysis {
+  keywords: SEOKeyword[];
+  competitors: SEOCompetitor[];
+  regionVolumes: SEORegionVolume[];
+  fetchedAt: number;
+  source: 'api' | 'mock';
+}
+
+/** Facebook Ad entry from Ads Library API */
+export interface FacebookAd {
+  id: string;
+  pageName: string;
+  pageId: string;
+  adSnapshotUrl: string;
+  adDeliveryStartTime: string;
+  adDeliveryStopTime: string | null;
+  adCreativeBodies: string[];
+  adCreativeLinkTitles: string[];
+  publisherPlatforms: string[];
+  languages: string[];
+  isActive: boolean;
+}
+
+/** Aggregated ads analysis */
+export interface AdsAnalysis {
+  ads: FacebookAd[];
+  fetchedAt: number;
+  source: 'api' | 'mock';
+  totalActive: number;
+  topAdvertisers: { name: string; count: number }[];
+}
+
+/** Dedup status for a keyword/slug */
+export interface DedupEntry {
+  keyword: string;
+  slug: string;
+  inSitemap: boolean;
+  inBase44: boolean;
+  inNotionDB: boolean;
+  existingUrl?: string;
+  existingBotId?: string;
+  existingBotName?: string;
+  status: 'new' | 'exists_sitemap' | 'exists_cms' | 'exists_notion' | 'duplicate';
+}
+
+/** Dedup analysis result */
+export interface DedupAnalysis {
+  entries: DedupEntry[];
+  sitemapSlugs: string[];
+  base44Bots: string[];
+  notionBots: string[];
+  fetchedAt: number;
+  source: 'api' | 'mock';
+}
+
+/** Scored product opportunity from data aggregator */
+export interface ProductOpportunity {
+  id: string;
+  keyword: string;
+  category: string;
+  source: 'seo' | 'social' | 'ads' | 'combined';
+  seoScore: number;
+  socialScore: number;
+  adsScore: number;
+  dedupStatus: DedupEntry['status'];
+  totalScore: number;
+  searchVolume: number;
+  kd: number;
+  traffic: number;
+  adCount: number;
+  region: string;
+  recommendation: 'high_priority' | 'worth_exploring' | 'low_priority' | 'skip';
+  reasoning: string;
+}
+
+/** Full aggregated selection agent data */
+export interface SelectionAgentData {
+  seo: SEOAnalysis;
+  ads: AdsAnalysis;
+  dedup: DedupAnalysis;
+  opportunities: ProductOpportunity[];
+  lastUpdated: number;
+}

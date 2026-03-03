@@ -83,7 +83,76 @@ export const TRANSLATIONS = {
     searchVol: "Search Vol",
     relatedPosts: "Related Posts",
     type: "Type",
-    trendTimeline: "Trend Timeline"
+    trendTimeline: "Trend Timeline",
+
+    // Navigation
+    navTrends: "Trends",
+    navSelection: "Selection Agent",
+
+    // Selection Agent
+    selTitle: "Selection Agent",
+    selSubtitle: "Omni-Channel Product Intelligence",
+    selOverview: "Overview",
+    selSEO: "SEO Intel",
+    selAds: "Ads Intel",
+    selDedup: "Dedup Check",
+    selRefresh: "Refresh",
+    selRefreshing: "Analyzing...",
+    selAnalyzing: "Running Analysis",
+    selAnalyzingDesc: "Scanning SEO, Ads & Dedup channels...",
+
+    // SEO Panel
+    selTotalKeywords: "Keywords",
+    selCompetitors: "Competitors",
+    selAvgKD: "Avg KD",
+    selDataSource: "Source",
+    selTopByTraffic: "Top Keywords by Traffic",
+    selVolVsDifficulty: "Volume vs Difficulty",
+    selFilterKeywords: "Filter keywords...",
+    selAllDomains: "All Domains",
+    selKeyword: "Keyword",
+    selVolume: "Volume",
+    selTraffic: "Traffic",
+    selPosition: "Position",
+    selDomain: "Domain",
+    selCompetitorDiscovery: "Competitor Discovery",
+    selCommonKW: "Common KW",
+    selOrgTraffic: "Organic Traffic",
+    selLoadingSEO: "Loading SEO data...",
+
+    // Ads Panel
+    selTotalAds: "Total Ads",
+    selActiveAds: "Active",
+    selAdvertisers: "Advertisers",
+    selTopAdvertisers: "Top Advertisers",
+    selPlatformDist: "Platform Distribution",
+    selAll: "All",
+    selActive: "Active",
+    selInactive: "Inactive",
+    selAllAdvertisers: "All Advertisers",
+    selViewAd: "View",
+    selLoadingAds: "Loading Ads data...",
+
+    // Dedup Panel
+    selTotalChecked: "Checked",
+    selNewOpps: "New",
+    selExisting: "Existing",
+    selDataSources: "Sources",
+    selStatusDist: "Status Distribution",
+    selDataSourcesSummary: "Data Sources",
+    selStatus: "Status",
+    selLoadingDedup: "Running dedup check...",
+
+    // Overview
+    selHighPriority: "High Priority",
+    selWorthExploring: "Worth Exploring",
+    selLowPriority: "Low Priority",
+    selSkip: "Skip",
+    selTopOpportunities: "Top Opportunities by Score",
+    selRankedOpps: "Ranked Opportunities",
+    selCategory: "Category",
+    selTotalScore: "Score",
+    selRecommendation: "Rec",
   },
   zh: {
     appTitle: "趋势脉搏 AI",
@@ -168,6 +237,75 @@ export const TRANSLATIONS = {
     searchVol: "搜索量",
     relatedPosts: "相关视频/帖子",
     type: "类型",
-    trendTimeline: "趋势走向图"
+    trendTimeline: "趋势走向图",
+
+    // Navigation
+    navTrends: "趋势追踪",
+    navSelection: "选品Agent",
+
+    // Selection Agent
+    selTitle: "全渠道选品Agent",
+    selSubtitle: "SEO · 社媒 · 投放 · 去重 全链路分析",
+    selOverview: "总览",
+    selSEO: "SEO情报",
+    selAds: "投放情报",
+    selDedup: "去重检查",
+    selRefresh: "刷新",
+    selRefreshing: "分析中...",
+    selAnalyzing: "正在运行分析",
+    selAnalyzingDesc: "扫描SEO、广告投放和去重渠道...",
+
+    // SEO Panel
+    selTotalKeywords: "关键词数",
+    selCompetitors: "竞品数",
+    selAvgKD: "平均KD",
+    selDataSource: "数据源",
+    selTopByTraffic: "流量最高关键词",
+    selVolVsDifficulty: "搜索量 vs 难度",
+    selFilterKeywords: "筛选关键词...",
+    selAllDomains: "全部域名",
+    selKeyword: "关键词",
+    selVolume: "搜索量",
+    selTraffic: "流量",
+    selPosition: "排名",
+    selDomain: "域名",
+    selCompetitorDiscovery: "竞品发现",
+    selCommonKW: "共同关键词",
+    selOrgTraffic: "自然流量",
+    selLoadingSEO: "加载SEO数据...",
+
+    // Ads Panel
+    selTotalAds: "广告总数",
+    selActiveAds: "活跃中",
+    selAdvertisers: "广告主数",
+    selTopAdvertisers: "头部广告主",
+    selPlatformDist: "平台分布",
+    selAll: "全部",
+    selActive: "活跃",
+    selInactive: "已停止",
+    selAllAdvertisers: "全部广告主",
+    selViewAd: "查看",
+    selLoadingAds: "加载广告数据...",
+
+    // Dedup Panel
+    selTotalChecked: "已检查",
+    selNewOpps: "新机会",
+    selExisting: "已有",
+    selDataSources: "数据源",
+    selStatusDist: "状态分布",
+    selDataSourcesSummary: "数据源汇总",
+    selStatus: "状态",
+    selLoadingDedup: "正在去重检查...",
+
+    // Overview
+    selHighPriority: "高优先级",
+    selWorthExploring: "值得探索",
+    selLowPriority: "低优先级",
+    selSkip: "跳过",
+    selTopOpportunities: "机会评分排名",
+    selRankedOpps: "机会排行榜",
+    selCategory: "分类",
+    selTotalScore: "综合评分",
+    selRecommendation: "建议",
   }
 };
