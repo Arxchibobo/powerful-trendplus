@@ -1,6 +1,22 @@
-# TrendPulse AI - Omni-Channel Social Intelligence & Selection Agent
+# TrendPulse AI
 
-Real-time social trend intelligence platform with an integrated omni-channel product selection agent. Built with React 19, Vite 6, TypeScript 5.8, and a cyberpunk dark theme.
+**Real-time social intelligence and omni-channel product selection platform for AI content creators.**
+
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev)
+[![Gemini AI](https://img.shields.io/badge/Gemini_AI-powered-4285F4?logo=google)](https://ai.google.dev)
+
+---
+
+## Overview
+
+TrendPulse AI is a two-module intelligence platform designed for AI-powered content products (photo editing, avatar generation, image tools, etc.). It helps product and content teams answer two questions:
+
+1. **What's trending right now?** — Scan real-time signals across 7 social platforms and surface emerging trends with scoring, risk assessment, creator guidance, and AI-generated visuals.
+2. **What should we build next?** — Aggregate SEO keyword data, Facebook ad activity, and deduplication checks into a single gap-score ranking that identifies the highest-opportunity topics.
+
+---
 
 ## Architecture
 
@@ -20,44 +36,51 @@ Real-time social trend intelligence platform with an integrated omni-channel pro
 └─────────────────┴───────────────────────────────────┘
 ```
 
+---
+
 ## Features
 
-### Trends Page (Existing)
+### Trends Intelligence
 - **Gemini-powered search** with real-time Google Search grounding
-- **Multi-platform tracking**: X, TikTok, Reddit, LinkedIn, YouTube, Instagram, Facebook
-- **Deep analysis**: Trend scoring, risk assessment, creator production SOPs
-- **AI image generation**: Visual prototypes via Gemini 3 Pro
-- **i18n**: English & Chinese (zh-CN)
+- **Multi-platform tracking** — X, TikTok, Reddit, LinkedIn, YouTube, Instagram, Facebook
+- **Velocity-Kinetic Score (VKS)** — Real-time momentum metric streamed via Server-Sent Events
+- **Deep dive analysis** — Trend scoring, risk assessment, creator production SOPs
+- **AI image generation** — Visual prototypes via Gemini image models
+- **Bilingual UI** — English and Chinese (zh-CN)
 
-### Selection Agent (New)
+### Selection Agent
 - **SEO Intelligence** (Semrush API)
-  - `domain_organic`: Competitor keyword lists with rankings, traffic, KD
-  - `domain_organic_organic`: Related competitor domain discovery
-  - `phrase_this`: Regional search volume queries
-  - Filtering: Excludes low-value regions (India), high KD (>70), low volume (<100)
-  - Interactive charts: Traffic bar chart, Volume vs Difficulty scatter plot
+  - Competitor keyword lists with rankings, traffic, and difficulty scores
+  - Related competitor domain discovery
+  - Regional search volume analysis
+  - Filtering: excludes low-value regions, high difficulty (KD > 70), low volume (< 100)
+  - Interactive charts: traffic bar chart, volume vs. difficulty scatter plot
 
 - **Ads Intelligence** (Facebook Ads Library API)
-  - Competitor ad monitoring across Facebook, Instagram, Audience Network
-  - Ad creative analysis: bodies, titles, platforms, languages
-  - Active/inactive status tracking
+  - Competitor ad monitoring across Facebook, Instagram, and Audience Network
+  - Ad creative analysis: copy, titles, active/inactive status, platforms, languages
   - Top advertiser rankings with platform distribution charts
 
-- **Dedup Engine**
+- **Deduplication Engine**
   - Sitemap crawling (`art.myshell.ai/sitemap.xml`)
-  - Base44 CMS bot matching (`app.base44.com/api`)
+  - Base44 CMS bot matching
   - Notion Database cross-reference
-  - Status classification: new, exists_sitemap, exists_cms, exists_notion, duplicate
+  - Status classification: `new`, `exists_sitemap`, `exists_cms`, `exists_notion`, `duplicate`
 
-- **Data Aggregator**
-  - Weighted scoring: SEO (40%) + Social (20%) + Ads (25%) + Dedup penalty (15%)
-  - Recommendation engine: high_priority / worth_exploring / low_priority / skip
-  - Ranked opportunities table with reasoning
+- **Data Aggregator & Gap Scoring**
+  - Weighted composite score: SEO (40%) + Ads (25%) + Social (20%) + Dedup penalty (15%)
+  - Recommendation engine: `high_priority` / `worth_exploring` / `low_priority` / `skip`
+  - Ranked opportunities table with per-keyword reasoning
+
+### Research Pipeline (Python)
+- Server-side script (`scripts/run_full_research.py`) pulls from Semrush and Facebook Ads, runs deduplication, computes gap scores, and outputs dated JSON reports to `data/`
+
+---
 
 ## Competitors Monitored
 
-| Domain | Category |
-|--------|----------|
+| Domain | Focus |
+|---|---|
 | photoroom.com | Background removal, product photos |
 | lensaai.com | AI portraits, magic avatars |
 | faceapp.com | Face editing, age transformation |
@@ -68,136 +91,151 @@ Real-time social trend intelligence platform with an integrated omni-channel pro
 | cutout.pro | Smart background editing |
 | pixlr.com | Online photo editor |
 
+---
+
+## Requirements
+
+- Node.js ≥ 18
+- Python ≥ 3.9 (research pipeline only)
+- A Gemini API key (see [Configuration](#configuration))
+
+---
+
+## Setup
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/Arxchibobo/powerful-trendplus.git
+cd powerful-trendplus
+npm install
+```
+
+### 2. Configure environment variables
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your API keys:
+
+| Variable | Required | Description |
+|---|---|---|
+| `VITE_GEMINI_API_KEY` | **Yes** | Google Gemini API key — trend search and analysis |
+| `VITE_SEMRUSH_API_KEY` | No | Semrush API key — SEO intelligence |
+| `VITE_FB_ADS_TOKEN` | No | Facebook Ads Library access token |
+| `TIKHUB_API_KEY` | No | TikHub API key — social signal crawling |
+| `NOTION_API_KEY` | No | Notion integration token — deduplication |
+
+All optional APIs have comprehensive mock data fallbacks — the app runs fully without them.
+
+### 3. Start the development server
+
+```bash
+npm run dev
+# http://localhost:3000
+```
+
+### 4. Build for production
+
+```bash
+npm run build
+npm run preview
+```
+
+---
+
+## Research Pipeline (Python)
+
+Run the full keyword research pipeline to generate a fresh data snapshot:
+
+```bash
+pip install requests
+python3 scripts/run_full_research.py
+```
+
+Output: `data/research_YYYY-MM-DD.json` with per-keyword gap scores, priorities, Facebook ad counts, and deduplication status.
+
+**Pipeline filters applied:**
+- Minimum search volume: 1,000
+- Maximum keyword difficulty: 80
+- Excludes India, Bangladesh, Pakistan traffic
+- Excludes brand terms, text generators, and font tools
+
+---
+
+## API Details
+
+### Gemini (Required)
+- Get a key at [Google AI Studio](https://aistudio.google.com/apikey)
+- Models used: `gemini-3-flash-preview`, `gemini-3-pro-preview`, `gemini-3-pro-image-preview`
+
+### Semrush (Optional)
+- [Semrush API docs](https://www.semrush.com/api/)
+- Endpoints: `domain_organic`, `domain_organic_organic`, `phrase_this`
+
+### Facebook Ads Library (Optional)
+- Requires a Facebook Business Manager System User with `ads_read` permission
+- [Facebook Ads Library API setup](https://www.facebook.com/ads/library/api/?source=onboarding)
+
+---
+
+## Project Structure
+
+```
+├── App.tsx                     # Root — page navigation and state
+├── types.ts                    # All TypeScript interfaces
+├── i18n.ts                     # English / zh-CN translations
+├── constants.ts                # Keyword taxonomy and categories
+├── services/
+│   ├── geminiService.ts        # Gemini AI — trend search, deep dive, image gen
+│   ├── semrushService.ts       # Semrush — competitor keyword analysis
+│   ├── facebookAdsService.ts   # Facebook Ads Library — ad monitoring
+│   ├── dedupService.ts         # Deduplication — sitemap, Base44, Notion
+│   ├── dataAggregator.ts       # Gap score computation and ranking
+│   └── tikHubService.ts        # TikHub — social signal crawling
+├── hooks/
+│   └── useTrendData.ts         # VKS streaming via Server-Sent Events
+├── components/
+│   ├── AnalysisPanel.tsx       # Trend deep-dive view
+│   ├── selection/
+│   │   ├── SelectionAgent.tsx  # Selection dashboard (Overview/SEO/Ads/Dedup tabs)
+│   │   ├── SEOPanel.tsx        # SEO keywords and charts
+│   │   ├── AdsPanel.tsx        # Facebook ads intelligence
+│   │   └── DedupPanel.tsx      # Deduplication status
+│   ├── layout/                 # Header, Sidebar, AnimatedBackground, IntroLoader
+│   ├── effects/                # GlitchTicker, VKSSpark, RollingNumber, Abstract3D
+│   ├── admin/                  # Admin dashboard, VKS charts, task management
+│   └── creator/                # Creator-focused dashboard
+├── scripts/
+│   └── run_full_research.py    # Server-side research orchestration
+└── data/
+    └── research_YYYY-MM-DD.json  # Research output snapshots
+```
+
+---
+
 ## Tech Stack
 
 | Technology | Version | Purpose |
-|-----------|---------|---------|
+|---|---|---|
 | React | 19.2 | UI framework |
-| Vite | 6.2 | Build tool & dev server |
+| Vite | 6.2 | Build tool and dev server |
 | TypeScript | 5.8 | Type safety |
 | Recharts | 3.5 | Data visualization |
 | Framer Motion | 11.13 | Animations |
 | Lucide React | 0.555 | Icons |
 | @google/genai | 1.30 | Gemini API client |
 | Tailwind CSS | CDN | Styling (cyberpunk dark theme) |
+| Python + requests | — | Research pipeline |
 
-## Setup
-
-### 1. Clone & Install
-
-```bash
-git clone <repo-url>
-cd trendpulse-ai
-npm install
-```
-
-### 2. Environment Variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your API keys:
-
-```env
-# Required - Gemini API for trend search & analysis
-VITE_GEMINI_API_KEY=your_gemini_key
-
-# Optional - Semrush API for SEO intelligence (mock data fallback)
-VITE_SEMRUSH_API_KEY=your_semrush_key
-
-# Optional - Facebook Ads Library API (mock data fallback)
-VITE_FB_ADS_TOKEN=your_fb_ads_token
-```
-
-### 3. Run Development Server
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:3000`
-
-### 4. Build for Production
-
-```bash
-npm run build
-```
-
-## API Integration Details
-
-### Gemini API (Required)
-- Get an API key at [Google AI Studio](https://aistudio.google.com/apikey)
-- Used for: trend search, deep analysis, image generation
-- Models: `gemini-3-flash-preview`, `gemini-3-pro-preview`, `gemini-3-pro-image-preview`
-
-### Semrush API (Optional)
-- Get an API key at [Semrush API](https://www.semrush.com/api/)
-- Endpoints used:
-  - `domain_organic` - Competitor keyword data
-  - `domain_organic_organic` - Related competitor discovery
-  - `phrase_this` - Regional search volume
-- Falls back to realistic mock data when key is missing
-
-### Facebook Ads Library API (Optional)
-- Requires Facebook Business Manager setup:
-  1. Create a System User in Business Manager
-  2. Assign App + `ads_read` permission
-  3. Generate a long-lived Access Token
-- [Setup Guide](https://www.facebook.com/ads/library/api/?source=onboarding)
-- Falls back to realistic mock data when token is missing
-
-### Dedup Sources
-- **Sitemap**: Fetches `https://art.myshell.ai/sitemap.xml` and extracts URL slugs
-- **Base44 CMS**: Queries `https://app.base44.com/api/bots` for existing bots
-- **Notion DB**: Requires server-side proxy (uses mock data in frontend)
-
-## Project Structure
-
-```
-├── App.tsx                          # Main app with page navigation
-├── types.ts                         # All TypeScript interfaces
-├── i18n.ts                          # English & Chinese translations
-├── constants.ts                     # Keyword dictionary & config
-├── index.tsx                        # React entry point
-├── index.html                       # HTML with Tailwind config
-├── env.d.ts                         # Vite env type declarations
-├── .env.example                     # Environment variables template
-├── vite.config.ts                   # Vite configuration
-├── tsconfig.json                    # TypeScript configuration
-├── services/
-│   ├── geminiService.ts             # Gemini AI search & analysis
-│   ├── tikHubService.ts             # TikHub social media crawler
-│   ├── semrushService.ts            # Semrush SEO API (3 endpoints)
-│   ├── facebookAdsService.ts        # Facebook Ads Library API
-│   ├── dedupService.ts              # Dedup engine (Sitemap/Base44/Notion)
-│   └── dataAggregator.ts            # Channel aggregation & scoring
-├── components/
-│   ├── AnalysisPanel.tsx            # Trend deep analysis view
-│   ├── TrendListItem.tsx            # Trend list item component
-│   ├── TrendGalleryCard.tsx         # Trend gallery card component
-│   ├── selection/
-│   │   ├── SelectionAgent.tsx       # Main selection dashboard with tabs
-│   │   ├── SEOPanel.tsx             # SEO keywords & charts
-│   │   ├── AdsPanel.tsx             # Facebook ads intelligence
-│   │   └── DedupPanel.tsx           # Dedup analysis & status
-│   ├── layout/
-│   │   ├── AnimatedBackground.tsx   # Animated bg effects
-│   │   ├── Header.tsx               # Header component
-│   │   ├── IntroLoader.tsx          # Loading screen
-│   │   └── ...
-│   └── effects/
-│       ├── Abstract3DAnchor.tsx     # 3D decorative elements
-│       └── ...
-└── hooks/
-    └── useTrendData.ts              # Trend data hook
-```
+---
 
 ## Design System
 
 - **Theme**: Cyberpunk dark (`#020205` background)
-- **Glass panels**: `.glass-high` class with backdrop blur
-- **Colors**: Pulse (`#00F0FF`), Spark (`#FF7E5F`), Surge (`#BD00FF`)
-- **Typography**: SF Pro Display / Inter, all-caps tracking-widest for labels
-- **Animations**: Framer Motion for page transitions, loading states
+- **Glass panels**: `.glass-high` class with backdrop blur and saturation
+- **Accent colors**: Pulse `#00F0FF` · Spark `#FF7E5F` · Surge `#BD00FF`
+- **Typography**: SF Pro Display / Inter, all-caps `tracking-widest` for labels
+- **Animations**: Framer Motion page transitions, breathing cards, glitch effects
 - **Charts**: Recharts with dark theme styling
